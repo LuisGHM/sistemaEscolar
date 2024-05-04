@@ -1,35 +1,54 @@
 #include <stdio.h>
 
-// Função para criar um novo registro de curso
 void createCourse() {
-    // Implementação da lógica de criação do curso
     printf("Função createCourse() chamada.\n");
 }
 
-// Função para ler um registro de curso existente
 void readCourse() {
-    // Implementação da lógica de leitura do curso
     printf("Função readCourse() chamada.\n");
 }
 
-// Função para atualizar um registro de curso existente
 void updateCourse() {
-    // Implementação da lógica de atualização do curso
     printf("Função updateCourse() chamada.\n");
 }
 
-// Função para excluir um registro de curso existente
 void deleteCourse() {
-    // Implementação da lógica de exclusão do curso
     printf("Função deleteCourse() chamada.\n");
 }
 
-int main() {
-    // Chamadas de exemplo para as funções
-    createCourse();
-    readCourse();
-    updateCourse();
-    deleteCourse();
+void crudCourse() {
+    int choice;
 
-    return 0;
+    do {
+        printf("Escolha uma opção:\n");
+        printf("1. Criar curso\n");
+        printf("2. Ler curso\n");
+        printf("3. Atualizar curso\n");
+        printf("4. Deletar curso\n");
+        printf("0. Sair\n");
+        printf("Opção: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                createCourse();
+                break;
+            case 2:
+                readCourse();
+                break;
+            case 3:
+                updateCourse();
+                break;
+            case 4:
+                deleteCourse();
+                break;
+            case 0:
+                printf("Saindo...\n");
+                break;
+            default:
+                printf("Opção inválida. Tente novamente.\n");
+                break;
+        }
+    } while (choice != 0);
+    return;
 }
