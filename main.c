@@ -5,4 +5,8 @@ int main() {
     if(aasdd){
         printf("asda");
     }
+
+    else(lalalalal){
+
+    }
 }
