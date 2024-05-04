@@ -9,4 +9,13 @@ int main() {
     else(lalalalal){
 
     }
+    else if (else if (/* condition */)
+    {
+        /* code */
+    }
+    )
+    {
+        /* code */
+    }
+    asdasd
 }
