@@ -105,7 +105,71 @@ void readCourseById() {
 }
 
 void updateCourse() {
-    printf("Função updateCourse() chamada.\n");
+    int courseId;
+    printf("Digite o ID do curso que deseja atualizar: ");
+    scanf("%d", &courseId);
+    getchar(); // Consume the newline character left by scanf
+
+    // Abrir arquivo no modo de leitura
+    FILE *file = fopen("database/cursos.csv", "r");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+
+    // Criar um arquivo temporário para armazenar os cursos atualizados
+    FILE *tempFile = fopen("database/temp.csv", "w");
+    if (tempFile == NULL) {
+        printf("Erro ao criar o arquivo temporário.\n");
+        fclose(file);
+        return;
+    }
+
+    char line[255];
+    while (fgets(line, sizeof(line), file)) {
+        int id;
+        sscanf(line, "%d", &id);
+        if (id == courseId) {
+            struct Course updatedCourse;
+            updatedCourse.id = id;
+
+            // Leitura dos novos dados do curso
+            printf("Digite o novo nome do curso: ");
+            fgets(updatedCourse.name, sizeof(updatedCourse.name), stdin);
+            printf("Digite a nova descrição do curso: ");
+            fgets(updatedCourse.description, sizeof(updatedCourse.description), stdin);
+            printf("Digite os novos alunos do curso: ");
+            fgets(updatedCourse.students, sizeof(updatedCourse.students), stdin);
+
+            // Removendo possíveis quebras de linha lidas por fgets
+            updatedCourse.name[strcspn(updatedCourse.name, "\n")] = 0;
+            updatedCourse.description[strcspn(updatedCourse.description, "\n")] = 0;
+            updatedCourse.students[strcspn(updatedCourse.students, "\n")] = 0;
+
+            // Escrevendo os dados atualizados no arquivo temporário
+            fprintf(tempFile, "%d,%s,%s,%s\n", updatedCourse.id, updatedCourse.name, updatedCourse.description, updatedCourse.students);
+        } else {
+            // Escrevendo os cursos não atualizados no arquivo temporário
+            fprintf(tempFile, "%s", line);
+        }
+    }
+
+    fclose(file);
+    fclose(tempFile);
+
+    // Remover o arquivo original
+    if (remove("database/cursos.csv") != 0) {
+        printf("Erro ao deletar o arquivo.\n");
+        return;
+    }
+
+    // Renomear o arquivo temporário para o nome original
+    if (rename("database/temp.csv", "database/cursos.csv") != 0) {
+        printf("Erro ao renomear o arquivo.\n");
+        return;
+    }
+
+    printf("Curso atualizado com sucesso!\n");
 }
 
 void deleteCourse() {
