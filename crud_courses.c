@@ -109,7 +109,51 @@ void updateCourse() {
 }
 
 void deleteCourse() {
-    printf("Função deleteCourse() chamada.\n");
+    int courseId;
+    printf("Digite o ID do curso que deseja deletar: ");
+    scanf("%d", &courseId);
+    getchar(); // Consume the newline character left by scanf
+
+    // Abrir arquivo no modo de leitura
+    FILE *file = fopen("database/cursos.csv", "r");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+
+    // Criar um arquivo temporário para armazenar os cursos não deletados
+    FILE *tempFile = fopen("database/temp.csv", "w");
+    if (tempFile == NULL) {
+        printf("Erro ao criar o arquivo temporário.\n");
+        fclose(file);
+        return;
+    }
+
+    char line[255];
+    while (fgets(line, sizeof(line), file)) {
+        int id;
+        sscanf(line, "%d", &id);
+        if (id != courseId) {
+            fprintf(tempFile, "%s", line);
+        }
+    }
+
+    fclose(file);
+    fclose(tempFile);
+
+    // Remover o arquivo original
+    if (remove("database/cursos.csv") != 0) {
+        printf("Erro ao deletar o arquivo.\n");
+        return;
+    }
+
+    // Renomear o arquivo temporário para o nome original
+    if (rename("database/temp.csv", "database/cursos.csv") != 0) {
+        printf("Erro ao renomear o arquivo.\n");
+        return;
+    }
+
+    printf("Curso deletado com sucesso!\n");
 }
 
 void crudCourse() {
@@ -120,7 +164,8 @@ void crudCourse() {
         printf("1. Criar curso\n");
         printf("2. Ler todos os curso\n");
         printf("3. Achar um curso com base no ID\n");
-        printf("4. Deletar curso\n");
+        printf("4. Atualizar um curso\n");
+        printf("5. Deletar curso\n");
         printf("0. Sair\n");
         printf("Opção: ");
         scanf("%d", &choice);
@@ -137,7 +182,10 @@ void crudCourse() {
                 readCourseById();
                 break;
             case 4:
-                // deleteCourse();
+                updateCourse();
+                break;
+            case 5:
+                deleteCourse();
                 break;
             case 0:
                 printf("Saindo...\n");
