@@ -64,10 +64,20 @@ void createCourse() {
     printf("Curso cadastrado com sucesso!\n");
 }
 
-void readCourse() {
-    printf("Função readCourse() chamada.\n");
-
+void readAllCourses() {
+    FILE *file = fopen("database/cursos.csv", "r");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+    char line[255];
+    while (fgets(line, sizeof(line), file)) {
+        printf("%s", line);
+    }
+    fclose(file);
 }
+
+
 
 void updateCourse() {
     printf("Função updateCourse() chamada.\n");
@@ -83,8 +93,8 @@ void crudCourse() {
     do {
         printf("Escolha uma opção:\n");
         printf("1. Criar curso\n");
-        printf("2. Ler curso\n");
-        printf("3. Atualizar curso\n");
+        printf("2. Ler todos os curso\n");
+        printf("3. Achar um curso com base no ID\n");
         printf("4. Deletar curso\n");
         printf("0. Sair\n");
         printf("Opção: ");
@@ -96,10 +106,10 @@ void crudCourse() {
                 createCourse();
                 break;
             case 2:
-                readCourse();
+                readAllCourses();
                 break;
             case 3:
-                // updateCourse();
+                readCourseById();
                 break;
             case 4:
                 // deleteCourse();
