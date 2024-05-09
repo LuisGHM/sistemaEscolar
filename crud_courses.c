@@ -13,61 +13,61 @@ void createCourse() {
     struct Course newCourse;
     int lastId = 0;
 
-    // Abrir arquivo no modo de leitura para encontrar o último ID
-    FILE *file = fopen("database/cursos.csv", "r");
+    // Open file in read mode to find the last ID
+    FILE *file = fopen("database/courses.csv", "r");
     if (file == NULL) {
-        // Se o arquivo não existir, crie-o e adicione o cabeçalho
-        file = fopen("database/cursos.csv", "w");
+        // If the file doesn't exist, create it and add the header
+        file = fopen("database/courses.csv", "w");
         if (file == NULL) {
-            printf("Erro ao criar o arquivo.\n");
+            printf("Error creating the file.\n");
             return;
         }
-        fprintf(file, "ID,Nome,Descrição,Alunos\n");
+        fprintf(file, "ID,Name,Description,Students\n");
         newCourse.id = 1;
         fclose(file);
     } else {
-        // Ler o último ID existente
+        // Read the last existing ID
         char line[255];
         while (fgets(line, sizeof(line), file)) {
             sscanf(line, "%d", &lastId);
         }
-        newCourse.id = lastId + 1;  // Incrementa o ID
-        fclose(file);  // Fecha o arquivo após a leitura
+        newCourse.id = lastId + 1;  // Increment the ID
+        fclose(file);  // Close the file after reading
     }
 
-    // Reabre o arquivo no modo append para adicionar o novo curso
-    file = fopen("database/cursos.csv", "a");
+    // Reopen the file in append mode to add the new course
+    file = fopen("database/courses.csv", "a");
     if (file == NULL) {
-        printf("Erro ao abrir o arquivo para escrita.\n");
+        printf("Error opening the file for writing.\n");
         return;
     }
 
-    // Leitura de dados do curso
-    printf("Digite o nome do curso: ");
+    // Read course data
+    printf("Enter the course name: ");
     fgets(newCourse.name, sizeof(newCourse.name), stdin);
-    printf("Digite a descrição do curso: ");
+    printf("Enter the course description: ");
     fgets(newCourse.description, sizeof(newCourse.description), stdin);
-    printf("Digite os alunos do curso: ");
+    printf("Enter the course students: ");
     fgets(newCourse.students, sizeof(newCourse.students), stdin);
 
-    // Removendo possíveis quebras de linha lidas por fgets
+    // Remove possible newline characters read by fgets
     newCourse.name[strcspn(newCourse.name, "\n")] = 0;
     newCourse.description[strcspn(newCourse.description, "\n")] = 0;
     newCourse.students[strcspn(newCourse.students, "\n")] = 0;
 
-    // Escrevendo no arquivo
+    // Write to the file
     fprintf(file, "%d,%s,%s,%s\n", newCourse.id, newCourse.name, newCourse.description, newCourse.students);
 
-    // Fechar o arquivo
+    // Close the file
     fclose(file);
 
-    printf("Curso cadastrado com sucesso!\n");
+    printf("Course created successfully!\n");
 }
 
 void readAllCourses() {
-    FILE *file = fopen("database/cursos.csv", "r");
+    FILE *file = fopen("database/courses.csv", "r");
     if (file == NULL) {
-        printf("Erro ao abrir o arquivo.\n");
+        printf("Error opening the file.\n");
         return;
     }
     char line[255];
@@ -79,13 +79,13 @@ void readAllCourses() {
 
 void readCourseById() {
     int courseId;
-    printf("Digite o ID do curso: ");
+    printf("Enter the course ID: ");
     scanf("%d", &courseId);
     getchar(); // Consume the newline character left by scanf
 
-    FILE *file = fopen("database/cursos.csv", "r");
+    FILE *file = fopen("database/courses.csv", "r");
     if (file == NULL) {
-        printf("Erro ao abrir o arquivo.\n");
+        printf("Error opening the file.\n");
         return;
     }
 
@@ -100,27 +100,27 @@ void readCourseById() {
         }
     }
 
-    printf("Curso não encontrado.\n");
+    printf("Course not found.\n");
     fclose(file);
 }
 
 void updateCourse() {
     int courseId;
-    printf("Digite o ID do curso que deseja atualizar: ");
+    printf("Enter the ID of the course you want to update: ");
     scanf("%d", &courseId);
     getchar(); // Consume the newline character left by scanf
 
-    // Abrir arquivo no modo de leitura
-    FILE *file = fopen("database/cursos.csv", "r");
+    // Open file in read mode
+    FILE *file = fopen("database/courses.csv", "r");
     if (file == NULL) {
-        printf("Erro ao abrir o arquivo.\n");
+        printf("Error opening the file.\n");
         return;
     }
 
-    // Criar um arquivo temporário para armazenar os cursos atualizados
+    // Create a temporary file to store the updated courses
     FILE *tempFile = fopen("database/temp.csv", "w");
     if (tempFile == NULL) {
-        printf("Erro ao criar o arquivo temporário.\n");
+        printf("Error creating the temporary file.\n");
         fclose(file);
         return;
     }
@@ -133,23 +133,23 @@ void updateCourse() {
             struct Course updatedCourse;
             updatedCourse.id = id;
 
-            // Leitura dos novos dados do curso
-            printf("Digite o novo nome do curso: ");
+            // Read the new course data
+            printf("Enter the new course name: ");
             fgets(updatedCourse.name, sizeof(updatedCourse.name), stdin);
-            printf("Digite a nova descrição do curso: ");
+            printf("Enter the new course description: ");
             fgets(updatedCourse.description, sizeof(updatedCourse.description), stdin);
-            printf("Digite os novos alunos do curso: ");
+            printf("Enter the new course students: ");
             fgets(updatedCourse.students, sizeof(updatedCourse.students), stdin);
 
-            // Removendo possíveis quebras de linha lidas por fgets
+            // Remove possible newline characters read by fgets
             updatedCourse.name[strcspn(updatedCourse.name, "\n")] = 0;
             updatedCourse.description[strcspn(updatedCourse.description, "\n")] = 0;
             updatedCourse.students[strcspn(updatedCourse.students, "\n")] = 0;
 
-            // Escrevendo os dados atualizados no arquivo temporário
+            // Write the updated data to the temporary file
             fprintf(tempFile, "%d,%s,%s,%s\n", updatedCourse.id, updatedCourse.name, updatedCourse.description, updatedCourse.students);
         } else {
-            // Escrevendo os cursos não atualizados no arquivo temporário
+            // Write the non-updated courses to the temporary file
             fprintf(tempFile, "%s", line);
         }
     }
@@ -157,38 +157,38 @@ void updateCourse() {
     fclose(file);
     fclose(tempFile);
 
-    // Remover o arquivo original
-    if (remove("database/cursos.csv") != 0) {
-        printf("Erro ao deletar o arquivo.\n");
+    // Remove the original file
+    if (remove("database/courses.csv") != 0) {
+        printf("Error deleting the file.\n");
         return;
     }
 
-    // Renomear o arquivo temporário para o nome original
-    if (rename("database/temp.csv", "database/cursos.csv") != 0) {
-        printf("Erro ao renomear o arquivo.\n");
+    // Rename the temporary file to the original name
+    if (rename("database/temp.csv", "database/courses.csv") != 0) {
+        printf("Error renaming the file.\n");
         return;
     }
 
-    printf("Curso atualizado com sucesso!\n");
+    printf("Course updated successfully!\n");
 }
 
 void deleteCourse() {
     int courseId;
-    printf("Digite o ID do curso que deseja deletar: ");
+    printf("Enter the ID of the course you want to delete: ");
     scanf("%d", &courseId);
     getchar(); // Consume the newline character left by scanf
 
-    // Abrir arquivo no modo de leitura
-    FILE *file = fopen("database/cursos.csv", "r");
+    // Open file in read mode
+    FILE *file = fopen("database/courses.csv", "r");
     if (file == NULL) {
-        printf("Erro ao abrir o arquivo.\n");
+        printf("Error opening the file.\n");
         return;
     }
 
-    // Criar um arquivo temporário para armazenar os cursos não deletados
+    // Create a temporary file to store the non-deleted courses
     FILE *tempFile = fopen("database/temp.csv", "w");
     if (tempFile == NULL) {
-        printf("Erro ao criar o arquivo temporário.\n");
+        printf("Error creating the temporary file.\n");
         fclose(file);
         return;
     }
@@ -205,33 +205,33 @@ void deleteCourse() {
     fclose(file);
     fclose(tempFile);
 
-    // Remover o arquivo original
-    if (remove("database/cursos.csv") != 0) {
-        printf("Erro ao deletar o arquivo.\n");
+    // Remove the original file
+    if (remove("database/courses.csv") != 0) {
+        printf("Error deleting the file.\n");
         return;
     }
 
-    // Renomear o arquivo temporário para o nome original
-    if (rename("database/temp.csv", "database/cursos.csv") != 0) {
-        printf("Erro ao renomear o arquivo.\n");
+    // Rename the temporary file to the original name
+    if (rename("database/temp.csv", "database/courses.csv") != 0) {
+        printf("Error renaming the file.\n");
         return;
     }
 
-    printf("Curso deletado com sucesso!\n");
+    printf("Course deleted successfully!\n");
 }
 
 void crudCourse() {
     int choice;
 
     do {
-        printf("Escolha uma opção:\n");
-        printf("1. Criar curso\n");
-        printf("2. Ler todos os curso\n");
-        printf("3. Achar um curso com base no ID\n");
-        printf("4. Atualizar um curso\n");
-        printf("5. Deletar curso\n");
-        printf("0. Sair\n");
-        printf("Opção: ");
+        printf("Choose an option:\n");
+        printf("1. Create course\n");
+        printf("2. Read all courses\n");
+        printf("3. Find a course by ID\n");
+        printf("4. Update a course\n");
+        printf("5. Delete course\n");
+        printf("0. Exit\n");
+        printf("Option: ");
         scanf("%d", &choice);
         getchar(); // Consume the newline character left by scanf
 
@@ -252,10 +252,10 @@ void crudCourse() {
                 deleteCourse();
                 break;
             case 0:
-                printf("Saindo...\n");
+                printf("Exiting...\n");
                 break;
             default:
-                printf("Opção inválida. Tente novamente.\n");
+                printf("Invalid option. Please try again.\n");
                 break;
         }
     } while (choice != 0);
