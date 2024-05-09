@@ -77,7 +77,32 @@ void readAllCourses() {
     fclose(file);
 }
 
+void readCourseById() {
+    int courseId;
+    printf("Digite o ID do curso: ");
+    scanf("%d", &courseId);
+    getchar(); // Consume the newline character left by scanf
 
+    FILE *file = fopen("database/cursos.csv", "r");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+
+    char line[255];
+    while (fgets(line, sizeof(line), file)) {
+        int id;
+        sscanf(line, "%d", &id);
+        if (id == courseId) {
+            printf("%s", line);
+            fclose(file);
+            return;
+        }
+    }
+
+    printf("Curso não encontrado.\n");
+    fclose(file);
+}
 
 void updateCourse() {
     printf("Função updateCourse() chamada.\n");
