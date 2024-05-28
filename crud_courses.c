@@ -134,12 +134,41 @@ void updateCourse() {
             updatedCourse.id = id;
 
             // Read the new course data
-            printf("Enter the new course name: ");
-            fgets(updatedCourse.name, sizeof(updatedCourse.name), stdin);
-            printf("Enter the new course description: ");
-            fgets(updatedCourse.description, sizeof(updatedCourse.description), stdin);
-            printf("Enter the new course students: ");
-            fgets(updatedCourse.students, sizeof(updatedCourse.students), stdin);
+            printf("What do you want to update?\n");
+            printf("1. Name\n");
+            printf("2. Description\n");
+            printf("3. Students\n");
+            printf("Option: ");
+            int option;
+            scanf("%d", &option);
+            getchar(); // Consume the newline character left by scanf
+
+            switch (option) {
+                case 1:
+                    printf("Enter the new course name: ");
+                    fgets(updatedCourse.name, sizeof(updatedCourse.name), stdin);
+                    updatedCourse.description[0] = '\0'; // Clear the description
+                    updatedCourse.students[0] = '\0'; // Clear the students
+                    break;
+                case 2:
+                    printf("Enter the new course description: ");
+                    fgets(updatedCourse.description, sizeof(updatedCourse.description), stdin);
+                    updatedCourse.name[0] = '\0'; // Clear the name
+                    updatedCourse.students[0] = '\0'; // Clear the students
+                    break;
+                case 3:
+                    printf("Enter the new course students: ");
+                    fgets(updatedCourse.students, sizeof(updatedCourse.students), stdin);
+                    updatedCourse.name[0] = '\0'; // Clear the name
+                    updatedCourse.description[0] = '\0'; // Clear the description
+                    break;
+                default:
+                    printf("Invalid option. No changes will be made.\n");
+                    fclose(file);
+                    fclose(tempFile);
+                    remove("database/temp.csv"); // Remove the temporary file
+                    return;
+            }
 
             // Remove possible newline characters read by fgets
             updatedCourse.name[strcspn(updatedCourse.name, "\n")] = 0;
