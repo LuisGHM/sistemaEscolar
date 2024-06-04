@@ -284,6 +284,78 @@ void deleteFinan() {
     printf("Finan deleted successfully!\n");
 }
 
+    void sortUnpaidFinanByDueDate() {
+        // Open the file in read mode
+        FILE *file = fopen("database/finan.csv", "r");
+        if (file == NULL) {
+            printf("Error opening the file.\n");
+            return;
+        }
+
+        // Read the file line by line and store the unpaid finans in an array
+        struct Finan unpaidFinans[100]; // Assuming a maximum of 100 unpaid finans
+        int unpaidFinanCount = 0;
+        char line[255];
+        while (fgets(line, sizeof(line), file)) {
+            struct Finan finan;
+            sscanf(line, "%d,%[^,],%[^,],%d", &finan.id, finan.studentName, finan.dueDate, &finan.paid);
+            if (finan.paid == 0) {
+                unpaidFinans[unpaidFinanCount] = finan;
+                unpaidFinanCount++;
+            }
+        }
+
+        fclose(file);
+
+        // Sort the unpaid finans by due date using bubble sort algorithm
+        for (int i = 0; i < unpaidFinanCount - 1; i++) {
+            for (int j = 0; j < unpaidFinanCount - i - 1; j++) {
+                if (compareDates(unpaidFinans[j].dueDate, unpaidFinans[j + 1].dueDate) < 0) {
+                    struct Finan temp = unpaidFinans[j];
+                    unpaidFinans[j] = unpaidFinans[j + 1];
+                    unpaidFinans[j + 1] = temp;
+                }
+            }
+        }
+
+        // Print the sorted unpaid finans
+        printf("Unpaid Finans (Most recent/atrasada to furthest due date):\n");
+        for (int i = 0; i < unpaidFinanCount; i++) {
+            printf("ID: %d\n", unpaidFinans[i].id);
+            printf("Student Name: %s\n", unpaidFinans[i].studentName);
+            printf("Due Date: %s\n", unpaidFinans[i].dueDate);
+            printf("Paid: %d\n", unpaidFinans[i].paid);
+            printf("------------------------\n");
+        }
+    }
+
+    int compareDates(const char *date1, const char *date2) {
+        int day1, month1, year1;
+        int day2, month2, year2;
+        sscanf(date1, "%d/%d/%d", &day1, &month1, &year1);
+        sscanf(date2, "%d/%d/%d", &day2, &month2, &year2);
+
+        if (year1 < year2) {
+            return -1;
+        } else if (year1 > year2) {
+            return 1;
+        } else {
+            if (month1 < month2) {
+                return -1;
+            } else if (month1 > month2) {
+                return 1;
+            } else {
+                if (day1 < day2) {
+                    return -1;
+                } else if (day1 > day2) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+        }
+    }
+
 void crudFinan() {
     int choice;
 
@@ -291,9 +363,10 @@ void crudFinan() {
         printf("Choose an option:\n");
         printf("1. Create finan\n");
         printf("2. Read all finans\n");
-        printf("3. Find a finan by ID\n");
-        printf("4. Update a finan\n");
-        printf("5. Delete finan\n");
+        printf("3. Sort fina by date\n");
+        printf("4. Find a finan by ID\n");
+        printf("5. Update a finan\n");
+        printf("6. Delete finan\n");
         printf("0. Exit\n");
         printf("Option: ");
         scanf("%d", &choice);
@@ -307,12 +380,16 @@ void crudFinan() {
                 readAllFinan();
                 break;
             case 3:
+                sortUnpaidFinanByDueDate();
                 readFinanById();
                 break;
             case 4:
-                updateFinan();
+                readFinanById();
                 break;
             case 5:
+                updateFinan();
+                break;
+            case 6:
                 deleteFinan();
                 break;
             case 0:
