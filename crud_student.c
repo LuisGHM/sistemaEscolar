@@ -4,10 +4,9 @@
 
 struct Student {
     int id;
-    char name[50];
-    char lastName[50];
+    char nameComplete[100];
     char email[50];
-    char birthday[11]; // Formato "DD/MM/AAAA"
+    char birthday[11];
 };
 
 void createStudent() {
@@ -23,7 +22,7 @@ void createStudent() {
             printf("Error creating the file.\n");
             return;
         }
-        fprintf(file, "ID,Name,LastName,Email,Birthday\n");
+        fprintf(file, "ID,NameComplete,Email,Birthday\n");
         newStudent.id = 1;
         fclose(file);
     } else {
@@ -36,31 +35,28 @@ void createStudent() {
         fclose(file);  // Close the file after reading
     }
 
-    // Reopen the file in append mode to add the new course
+    // Reopen the file in append mode to add the new student
     file = fopen("database/student.csv", "a");
     if (file == NULL) {
         printf("Error opening the file for writing.\n");
         return;
     }
 
-    // Read course data
-    printf("Enter the Student Name: ");
-    fgets(newStudent.name, sizeof(newStudent.name), stdin);
-    printf("Enter the Student LastName: ");
-    fgets(newStudent.lastName, sizeof(newStudent.lastName), stdin);
+    // Read student data
+    printf("Enter the Student Full Name: ");
+    fgets(newStudent.nameComplete, sizeof(newStudent.nameComplete), stdin);
     printf("Enter the Student Email: ");
     fgets(newStudent.email, sizeof(newStudent.email), stdin);
-    printf("Enter the Student Birthday (DD/MM/AAAA): ");
+    printf("Enter the Student Birthday (DDMMAAAA): ");
     fgets(newStudent.birthday, sizeof(newStudent.birthday), stdin);
 
     // Remove possible newline characters read by fgets
-    newStudent.name[strcspn(newStudent.name, "\n")] = 0;
-    newStudent.lastName[strcspn(newStudent.lastName, "\n")] = 0;
+    newStudent.nameComplete[strcspn(newStudent.nameComplete, "\n")] = 0;
     newStudent.email[strcspn(newStudent.email, "\n")] = 0;
     newStudent.birthday[strcspn(newStudent.birthday, "\n")] = 0;
 
     // Write to the file
-    fprintf(file, "%d,%s,%s,%s,%s\n", newStudent.id, newStudent.name, newStudent.lastName, newStudent.email, newStudent.birthday);
+    fprintf(file, "%d,%s,%s,%s\n", newStudent.id, newStudent.nameComplete, newStudent.email, newStudent.birthday);
 
     // Close the file
     fclose(file);
@@ -68,8 +64,7 @@ void createStudent() {
     printf("Student created successfully!\n");
 }
 
-
-// Ler Students
+// Read all students
 void readAllStudent() {
     FILE *file = fopen("database/student.csv", "r");
     if (file == NULL) {
@@ -82,8 +77,6 @@ void readAllStudent() {
     }
     fclose(file);
 }
-
-
 
 void readStudentById() {
     int studentId;
@@ -125,7 +118,7 @@ void updateStudent() {
         return;
     }
 
-    // Create a temporary file to store the updated courses
+    // Create a temporary file to store the updated students
     FILE *tempFile = fopen("database/tempStudent.csv", "w");
     if (tempFile == NULL) {
         printf("Error creating the temporary file.\n");
@@ -142,14 +135,13 @@ void updateStudent() {
             updateStudent.id = id;
 
             // Copy current data to updateStudent
-            sscanf(line, "%d,%49[^,],%49[^,],%49[^,],%10[^\n]", &updateStudent.id, updateStudent.name, updateStudent.lastName, updateStudent.email, updateStudent.birthday);
+            sscanf(line, "%d,%99[^,],%49[^,],%10[^\n]", &updateStudent.id, updateStudent.nameComplete, updateStudent.email, updateStudent.birthday);
 
-            // Read the new course data
+            // Read the new student data
             printf("What do you want to update?\n");
-            printf("1. Name\n");
-            printf("2. LastName\n");
-            printf("3. Email\n");
-            printf("4. Birthday\n");
+            printf("1. Full Name\n");
+            printf("2. Email\n");
+            printf("3. Birthday\n");
             printf("Option: ");
             int option;
             scanf("%d", &option);
@@ -157,21 +149,16 @@ void updateStudent() {
 
             switch (option) {
                 case 1:
-                    printf("Enter the new name Student: ");
-                    fgets(updateStudent.name, sizeof(updateStudent.name), stdin);
-                    updateStudent.name[strcspn(updateStudent.name, "\n")] = 0;
+                    printf("Enter the new Full Name: ");
+                    fgets(updateStudent.nameComplete, sizeof(updateStudent.nameComplete), stdin);
+                    updateStudent.nameComplete[strcspn(updateStudent.nameComplete, "\n")] = 0;
                     break;
                 case 2:
-                    printf("Enter the new LastName Student: ");
-                    fgets(updateStudent.lastName, sizeof(updateStudent.lastName), stdin);
-                    updateStudent.lastName[strcspn(updateStudent.lastName, "\n")] = 0;
-                    break;
-                case 3:
-                    printf("Enter the new Email students: ");
+                    printf("Enter the new Email: ");
                     fgets(updateStudent.email, sizeof(updateStudent.email), stdin);
                     updateStudent.email[strcspn(updateStudent.email, "\n")] = 0;
                     break;
-                case 4:
+                case 3:
                     printf("Enter the new Birthday (DD/MM/AAAA): ");
                     fgets(updateStudent.birthday, sizeof(updateStudent.birthday), stdin);
                     updateStudent.birthday[strcspn(updateStudent.birthday, "\n")] = 0;
@@ -185,9 +172,9 @@ void updateStudent() {
             }
 
             // Write the updated data to the temporary file
-            fprintf(tempFile, "%d,%s,%s,%s,%s\n", updateStudent.id, updateStudent.name, updateStudent.lastName, updateStudent.email, updateStudent.birthday);
+            fprintf(tempFile, "%d,%s,%s,%s\n", updateStudent.id, updateStudent.nameComplete, updateStudent.email, updateStudent.birthday);
         } else {
-            // Write the non-updated courses to the temporary file
+            // Write the non-updated students to the temporary file
             fprintf(tempFile, "%s", line);
         }
     }
@@ -299,9 +286,4 @@ void crudStudent() {
         }
     } while (choice != 0);
     return;
-}
-
-int main() {
-    crudStudent();
-    return 0;
 }

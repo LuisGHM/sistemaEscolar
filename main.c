@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "crud_courses.c"
 #include "crud_finan.c"
+#include "crud_student.c"
 
 int main() {
     int choice;
@@ -9,6 +10,7 @@ int main() {
         printf("Choose an option:\n");
         printf("1. CRUD Courses\n");
         printf("2. CRUD Finan\n");
+        printf("3. CRUD Student\n");
         printf("0. Exit\n");
         printf("Option: ");
         scanf("%d", &choice);
@@ -20,6 +22,9 @@ int main() {
                 break;
             case 2:
                 crudFinan();
+                break;
+            case 3:
+                crudStudent();
                 break;
             case 0:
                 printf("Exiting...\n");
