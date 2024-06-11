@@ -16,7 +16,7 @@ int homeStudent(int isAdmin, char *registration) {
 
         switch (choice) {
             case 1:
-                finan();
+                finan(registration);
                 break;
             case 2:
                 student(registration);

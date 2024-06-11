@@ -4,14 +4,17 @@
 
 int compareDates(const char *date1, const char *date2);
 int isValidDate(const char *date);
+#define MAX_LINE_LENGTH 255
 
 struct Finan {
     int id;
+    char registration[50];
     char studentName[50];
     char dueDate[20];
     int paid; // New field
 };
 
+// Function to create a new financial record
 void createFinan() {
     struct Finan newFinan;
     int lastId = 0;
@@ -25,58 +28,80 @@ void createFinan() {
             printf("Error creating the file.\n");
             return;
         }
-        fprintf(file, "ID,Student Name,Due Date,Paid\n");
+        fprintf(file, "ID,Registration,Student Name,Due Date,Paid\n");
         newFinan.id = 1;
         fclose(file);
     } else {
         // Read the last existing ID
-        char line[255];
+        char line[MAX_LINE_LENGTH];
         while (fgets(line, sizeof(line), file)) {
             sscanf(line, "%d", &lastId);
         }
-        newFinan.id = lastId + 1;  // Increment the ID
-        fclose(file);  // Close the file after reading
+        newFinan.id = lastId + 1; // Increment the ID
+        fclose(file); // Close the file after reading
     }
 
-    // Reopen the file in append mode to add the new finan
+    // Reopen the file in append mode to add the new financial record
     file = fopen("database/finan.csv", "a");
     if (file == NULL) {
         printf("Error opening the file for writing.\n");
         return;
     }
 
-    // Read finan data
-    printf("Enter the student name: ");
-    fgets(newFinan.studentName, sizeof(newFinan.studentName), stdin);
-    
-    // Read and validate the due date
-    while (1) {
-        printf("Enter the due date (DD/MM/YYYY): ");
-        fgets(newFinan.dueDate, sizeof(newFinan.dueDate), stdin);
-        
-        // Validate the due date
-        if (isValidDate(newFinan.dueDate)) {
+    // Ask for the student's registration
+    printf("Enter the student's registration: ");
+    fgets(newFinan.registration, sizeof(newFinan.registration), stdin);
+    newFinan.registration[strcspn(newFinan.registration, "\n")] = '\0'; // Remove the newline character
+
+    // Check if the student's registration exists in the registration.csv file
+    FILE *regFile = fopen("database/registration.csv", "r");
+    if (regFile == NULL) {
+        printf("Error opening the registration file.\n");
+        fclose(file);
+        return;
+    }
+
+    int registrationFound = 0;
+    char regLine[MAX_LINE_LENGTH];
+    while (fgets(regLine, sizeof(regLine), regFile)) {
+        char reg[50], name[100];
+        sscanf(regLine, "%*d,%49[^,],%*d,%99[^,]", reg, name);
+        if (strcmp(newFinan.registration, reg) == 0) {
+            registrationFound = 1;
+            strcpy(newFinan.studentName, name);
             break;
-        } else {
-            printf("Invalid due date. Please try again.\n");
         }
     }
-    
-    printf("Enter 1 if the finan is paid, or 0 if it's not paid: ");
+    fclose(regFile);
+
+    if (!registrationFound) {
+        printf("Student registration not found.\n");
+        fclose(file);
+        return;
+    }
+
+    // Ask for the student's name
+    printf("Enter the student's name: ");
+    fgets(newFinan.studentName, sizeof(newFinan.studentName), stdin);
+    newFinan.studentName[strcspn(newFinan.studentName, "\n")] = '\0'; // Remove the newline character
+
+    // Ask for the due date
+    printf("Enter the due date (DD/MM/YYYY): ");
+    fgets(newFinan.dueDate, sizeof(newFinan.dueDate), stdin);
+    newFinan.dueDate[strcspn(newFinan.dueDate, "\n")] = '\0'; // Remove the newline character
+
+    // Ask for the payment status
+    printf("Enter 1 if the payment has been made, or 0 otherwise: ");
     scanf("%d", &newFinan.paid);
     getchar(); // Consume the newline character left by scanf
 
-    // Remove possible newline characters read by fgets
-    newFinan.studentName[strcspn(newFinan.studentName, "\n")] = 0;
-    newFinan.dueDate[strcspn(newFinan.dueDate, "\n")] = 0;
-
     // Write to the file
-    fprintf(file, "%d,%s,%s,%d\n", newFinan.id, newFinan.studentName, newFinan.dueDate, newFinan.paid);
+    fprintf(file, "%d,%s,%s,%s,%d\n", newFinan.id, newFinan.registration, newFinan.studentName, newFinan.dueDate, newFinan.paid);
 
     // Close the file
     fclose(file);
 
-    printf("Finan created successfully!\n");
+    printf("Financial record created successfully!\n");
 }
 
 int isValidDate(const char *date) {
