@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+int compareDates(const char *date1, const char *date2);
+int isValidDate(const char *date);
+
 struct Finan {
     int id;
     char studentName[50];

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct Student {
+struct StudentAdmin {
     int id;
     char nameComplete[100];
     char email[50];
@@ -10,7 +10,7 @@ struct Student {
 };
 
 void createStudent() {
-    struct Student newStudent;
+    struct StudentAdmin newStudent;
     int lastId = 0;
 
     // Open file in read mode to find the last ID
@@ -131,7 +131,7 @@ void updateStudent() {
         int id;
         sscanf(line, "%d", &id);
         if (id == studentId) {
-            struct Student updateStudent;
+            struct StudentAdmin updateStudent;
             updateStudent.id = id;
 
             // Copy current data to updateStudent
