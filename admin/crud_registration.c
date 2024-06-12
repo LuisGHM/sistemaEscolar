@@ -142,7 +142,7 @@ void findRegistrationById() {
     int registrationId;
     printf("Enter the Registration ID: ");
     scanf("%d", &registrationId);
-    getchar();
+    getchar(); // Consumir o caractere de nova linha deixado pelo scanf
 
     FILE *file = fopen("database/registration.csv", "r");
     if (file == NULL) {
@@ -151,17 +151,23 @@ void findRegistrationById() {
     }
 
     char line[255];
+    int found = 0; // Variável para indicar se o registro foi encontrado
+
+    // Algoritmo de pesquisa sequencial
     while (fgets(line, sizeof(line), file)) {
         int id;
-        sscanf(line, "%d", &id);
-        if (id == registrationId) {
+        sscanf(line, "%d,%*d,%*d,%*[^,],%*[^,],%*[^,],%*[^,\n]", &id);
+        if (id == registrationId) { // Comparar o ID atual com o ID desejado
             printf("%s", line);
-            fclose(file);
-            return;
+            found = 1; // Indicar que o registro foi encontrado
+            break;
         }
     }
 
-    printf("Registration not found.\n");
+    if (!found) {
+        printf("Registration not found.\n");
+    }
+
     fclose(file);
 }
 
@@ -175,28 +181,6 @@ void updateRegistration() {
     char studentName[101];
     char courseName[101];
     Student student;
-
-    // Request the student's full name
-    printf("Enter the full name of the student to register: ");
-    fgets(studentName, sizeof(studentName), stdin);
-    studentName[strcspn(studentName, "\n")] = 0;
-
-    // Check if the student exists and get their data
-    if (!findStudentByNameComplete(studentName, &student)) {
-        printf("Student not found. Please try again.\n");
-        return;
-    }
-
-    // Request the course name
-    printf("Enter the name of the course to register the student: ");
-    fgets(courseName, sizeof(courseName), stdin);
-    courseName[strcspn(courseName, "\n")] = 0;
-
-    // Check if the course exists
-    if (!findCourseByName(courseName)) {
-        printf("Course not found. Please try again.\n");
-        return;
-    }
 
     // Open the registration file for reading and writing
     FILE *file = fopen("database/registration.csv", "r");
@@ -214,6 +198,34 @@ void updateRegistration() {
         char oldStudentName[101], oldEmail[50], oldBirthday[11], oldCourseName[101];
         sscanf(line, "%d,%d,%d,%100[^,],%49[^,],%10[^,],%100[^\n]", &id, &reg, &studentId, oldStudentName, oldEmail, oldBirthday, oldCourseName);
         if (id == registrationId) {
+            // Request the student's full name
+            printf("Enter the full name of the student to register: ");
+            fgets(studentName, sizeof(studentName), stdin);
+            studentName[strcspn(studentName, "\n")] = 0;
+
+            // Check if the student exists and get their data
+            if (!findStudentByNameComplete(studentName, &student)) {
+                printf("Student not found. Please try again.\n");
+                fclose(file);
+                fclose(tempFile);
+                remove("database/temp_registration.csv");
+                return;
+            }
+
+            // Request the course name
+            printf("Enter the name of the course to register the student: ");
+            fgets(courseName, sizeof(courseName), stdin);
+            courseName[strcspn(courseName, "\n")] = 0;
+
+            // Check if the course exists
+            if (!findCourseByName(courseName)) {
+                printf("Course not found. Please try again.\n");
+                fclose(file);
+                fclose(tempFile);
+                remove("database/temp_registration.csv");
+                return;
+            }
+
             fprintf(tempFile, "%d,%d,%d,%s,%s,%s,%s\n", id, reg, student.id, student.fullName, student.email, student.birthday, courseName);
             found = 1;
         } else {

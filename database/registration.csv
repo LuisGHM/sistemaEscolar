@@ -1,4 +1,4 @@
 ID,Registration,StudentID,StudentName,Email,Birthday,CourseName
-1,2803,2,Gustavo Avila,guavila@gmail.com,17122002,Aprendizado de Maquina
-3,2849,3,Victor Honda,victor@gmail.com,17092000,Aprendizado de Maquina
-4,2878,1,Luis Gustavo,lu@gmail.com,11051955,Aprendizado de Maquina
+1,2803,2,Gustavo Avila,gu@gmail.com,,Eng
+3,2849,3,Victor Honda,victor@gmail.com,17092000,Eng
+4,2878,1,Luis Gustavo,lu@gmail.com,11051955,Engenharia de Software

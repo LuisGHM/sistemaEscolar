@@ -14,15 +14,141 @@ struct Finan {
     int paid; // New field
 };
 
-// Function to create a new financial record
+// Definição da estrutura do nó da lista encadeada
+struct Node {
+    struct Finan data;
+    struct Node* next;
+};
+
+// Função para comparar datas (retorne -1 se date1 < date2, 0 se iguais, 1 se date1 > date2)
+int compareDates(const char *date1, const char *date2) {
+    int day1, month1, year1;
+    int day2, month2, year2;
+    sscanf(date1, "%d/%d/%d", &day1, &month1, &year1);
+    sscanf(date2, "%d/%d/%d", &day2, &month2, &year2);
+
+    if (year1 < year2) {
+        return -1;
+    } else if (year1 > year2) {
+        return 1;
+    } else {
+        if (month1 < month2) {
+            return -1;
+        } else if (month1 > month2) {
+            return 1;
+        } else {
+            if (day1 < day2) {
+                return -1;
+            } else if (day1 > day2) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+    }
+}
+
+// Função para trocar dados entre dois nós
+void swap(struct Finan* a, struct Finan* b) {
+    struct Finan temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+// Função para adicionar um novo nó ao final da lista
+void append(struct Node** head_ref, struct Finan new_data) {
+    struct Node* new_node = (struct Node*)malloc(sizeof(struct Node));
+    struct Node* last = *head_ref;
+    new_node->data = new_data;
+    new_node->next = NULL;
+    
+    if (*head_ref == NULL) {
+        *head_ref = new_node;
+        return;
+    }
+
+    while (last->next != NULL)
+        last = last->next;
+
+    last->next = new_node;
+}
+
+// Função para imprimir a lista
+void printList(struct Node* node) {
+    while (node != NULL) {
+        printf("ID: %d\n", node->data.id);
+        printf("Registration: %s\n", node->data.registration);
+        printf("Student Name: %s\n", node->data.studentName);
+        printf("Due Date: %s\n", node->data.dueDate);
+        printf("Paid: %d\n", node->data.paid);
+        printf("------------------------\n");
+        node = node->next;
+    }
+}
+
+// Função Bubble Sort para lista encadeada
+void bubbleSort(struct Node* head) {
+    int swapped;
+    struct Node* ptr1;
+    struct Node* lptr = NULL;
+
+    // Verifique se a lista está vazia
+    if (head == NULL)
+        return;
+
+    do {
+        swapped = 0;
+        ptr1 = head;
+
+        while (ptr1->next != lptr) {
+            if (compareDates(ptr1->data.dueDate, ptr1->next->data.dueDate) > 0) {
+                swap(&(ptr1->data), &(ptr1->next->data));
+                swapped = 1;
+            }
+            ptr1 = ptr1->next;
+        }
+        lptr = ptr1;
+    } while (swapped);
+}
+
+// Função para ordenar os finans não pagos pela data de vencimento usando lista encadeada
+void sortUnpaidFinanByDueDate() {
+    // Abrir o arquivo em modo de leitura
+    FILE *file = fopen("database/finan.csv", "r");
+    if (file == NULL) {
+        printf("Error opening the file.\n");
+        return;
+    }
+
+    // Ler o arquivo linha por linha e armazenar os finans não pagos em uma lista encadeada
+    struct Node* unpaidFinans = NULL;
+    char line[255];
+    while (fgets(line, sizeof(line), file)) {
+        struct Finan finan;
+        sscanf(line, "%d,%[^,],%[^,],%[^,],%d", &finan.id, finan.registration, finan.studentName, finan.dueDate, &finan.paid);
+        if (finan.paid == 0) {
+            append(&unpaidFinans, finan);
+        }
+    }
+    fclose(file);
+
+    // Ordenar os finans não pagos pela data de vencimento usando Bubble Sort
+    bubbleSort(unpaidFinans);
+
+    // Imprimir os finans não pagos ordenados
+    printf("Unpaid Finans (Most recent/atrasada to furthest due date):\n");
+    printList(unpaidFinans);
+}
+
+// Função para criar um novo registro financeiro
 void createFinan() {
     struct Finan newFinan;
     int lastId = 0;
 
-    // Open file in read mode to find the last ID
+    // Abrir o arquivo em modo de leitura para encontrar o último ID
     FILE *file = fopen("database/finan.csv", "r");
     if (file == NULL) {
-        // If the file doesn't exist, create it and add the header
+        // Se o arquivo não existir, crie-o e adicione o cabeçalho
         file = fopen("database/finan.csv", "w");
         if (file == NULL) {
             printf("Error creating the file.\n");
@@ -32,28 +158,28 @@ void createFinan() {
         newFinan.id = 1;
         fclose(file);
     } else {
-        // Read the last existing ID
+        // Ler o último ID existente
         char line[MAX_LINE_LENGTH];
         while (fgets(line, sizeof(line), file)) {
             sscanf(line, "%d", &lastId);
         }
-        newFinan.id = lastId + 1; // Increment the ID
-        fclose(file); // Close the file after reading
+        newFinan.id = lastId + 1; // Incrementar o ID
+        fclose(file); // Fechar o arquivo após a leitura
     }
 
-    // Reopen the file in append mode to add the new financial record
+    // Reabrir o arquivo em modo de adição para adicionar o novo registro financeiro
     file = fopen("database/finan.csv", "a");
     if (file == NULL) {
         printf("Error opening the file for writing.\n");
         return;
     }
 
-    // Ask for the student's registration
+    // Solicitar o registro do aluno
     printf("Enter the student's registration: ");
     fgets(newFinan.registration, sizeof(newFinan.registration), stdin);
-    newFinan.registration[strcspn(newFinan.registration, "\n")] = '\0'; // Remove the newline character
+    newFinan.registration[strcspn(newFinan.registration, "\n")] = '\0'; // Remover o caractere de nova linha
 
-    // Check if the student's registration exists in the registration.csv file
+    // Verificar se o registro do aluno existe no arquivo registration.csv
     FILE *regFile = fopen("database/registration.csv", "r");
     if (regFile == NULL) {
         printf("Error opening the registration file.\n");
@@ -80,25 +206,25 @@ void createFinan() {
         return;
     }
 
-    // Ask for the student's name
+    // Solicitar o nome do aluno
     printf("Enter the student's name: ");
     fgets(newFinan.studentName, sizeof(newFinan.studentName), stdin);
-    newFinan.studentName[strcspn(newFinan.studentName, "\n")] = '\0'; // Remove the newline character
+    newFinan.studentName[strcspn(newFinan.studentName, "\n")] = '\0'; // Remover o caractere de nova linha
 
-    // Ask for the due date
+    // Solicitar a data de vencimento
     printf("Enter the due date (DD/MM/YYYY): ");
     fgets(newFinan.dueDate, sizeof(newFinan.dueDate), stdin);
-    newFinan.dueDate[strcspn(newFinan.dueDate, "\n")] = '\0'; // Remove the newline character
+    newFinan.dueDate[strcspn(newFinan.dueDate, "\n")] = '\0'; // Remover o caractere de nova linha
 
-    // Ask for the payment status
+    // Solicitar o status do pagamento
     printf("Enter 1 if the payment has been made, or 0 otherwise: ");
     scanf("%d", &newFinan.paid);
-    getchar(); // Consume the newline character left by scanf
+    getchar(); // Consumir o caractere de nova linha deixado pelo scanf
 
-    // Write to the file
+    // Escrever no arquivo
     fprintf(file, "%d,%s,%s,%s,%d\n", newFinan.id, newFinan.registration, newFinan.studentName, newFinan.dueDate, newFinan.paid);
 
-    // Close the file
+    // Fechar o arquivo
     fclose(file);
 
     printf("Financial record created successfully!\n");
@@ -144,7 +270,7 @@ void readFinanById() {
     int finanId;
     printf("Enter the finan ID: ");
     scanf("%d", &finanId);
-    getchar(); // Consume the newline character left by scanf
+    getchar(); // Consumir o caractere de nova linha deixado pelo scanf
 
     FILE *file = fopen("database/finan.csv", "r");
     if (file == NULL) {
@@ -153,17 +279,27 @@ void readFinanById() {
     }
 
     char line[255];
+    int found = 0; // Variável para indicar se o registro foi encontrado
+
+    // Algoritmo de pesquisa sequencial
     while (fgets(line, sizeof(line), file)) {
-        int id;
-        sscanf(line, "%d", &id);
-        if (id == finanId) {
-            printf("%s", line);
-            fclose(file);
-            return;
+        struct Finan finan;
+        sscanf(line, "%d,%[^,],%[^,],%[^,],%d", &finan.id, finan.registration, finan.studentName, finan.dueDate, &finan.paid);
+        if (finan.id == finanId) { // Comparar o ID atual com o ID desejado
+            printf("ID: %d\n", finan.id);
+            printf("Registration: %s\n", finan.registration);
+            printf("Student Name: %s\n", finan.studentName);
+            printf("Due Date: %s\n", finan.dueDate);
+            printf("Paid: %d\n", finan.paid);
+            found = 1; // Indicar que o registro foi encontrado
+            break;
         }
     }
 
-    printf("Finan not found.\n");
+    if (!found) {
+        printf("Finan not found.\n");
+    }
+
     fclose(file);
 }
 
@@ -171,16 +307,16 @@ void updateFinan() {
     int finanId;
     printf("Enter the ID of the finan you want to update: ");
     scanf("%d", &finanId);
-    getchar(); // Consume the newline character left by scanf
+    getchar(); // Consumir o caractere de nova linha deixado pelo scanf
 
-    // Open file in read mode
+    // Abrir o arquivo em modo de leitura
     FILE *file = fopen("database/finan.csv", "r");
     if (file == NULL) {
         printf("Error opening the file.\n");
         return;
     }
 
-    // Create a temporary file to store the updated finans
+    // Criar um arquivo temporário para armazenar os finans atualizados
     FILE *tempFile = fopen("database/temp.csv", "w");
     if (tempFile == NULL) {
         printf("Error creating the temporary file.\n");
@@ -196,7 +332,10 @@ void updateFinan() {
             struct Finan updatedFinan;
             updatedFinan.id = id;
 
-            // Read the new finan data
+            // Copiar os dados atuais para updatedFinan
+            sscanf(line, "%d,%49[^,],%49[^,],%19[^,],%d", &updatedFinan.id, updatedFinan.registration, updatedFinan.studentName, updatedFinan.dueDate, &updatedFinan.paid);
+
+            // Ler os novos dados do finan
             printf("What do you want to update?\n");
             printf("1. Student Name\n");
             printf("2. Due Date\n");
@@ -204,44 +343,36 @@ void updateFinan() {
             printf("Option: ");
             int option;
             scanf("%d", &option);
-            getchar(); // Consume the newline character left by scanf
+            getchar(); // Consumir o caractere de nova linha deixado pelo scanf
 
             switch (option) {
                 case 1:
                     printf("Enter the new student name: ");
                     fgets(updatedFinan.studentName, sizeof(updatedFinan.studentName), stdin);
-                    updatedFinan.dueDate[0] = '\0'; // Clear the due date
-                    updatedFinan.paid = 0; // Clear the paid status
+                    updatedFinan.studentName[strcspn(updatedFinan.studentName, "\n")] = 0;
                     break;
                 case 2:
                     printf("Enter the new due date: ");
                     fgets(updatedFinan.dueDate, sizeof(updatedFinan.dueDate), stdin);
-                    updatedFinan.studentName[0] = '\0'; // Clear the student name
-                    updatedFinan.paid = 0; // Clear the paid status
+                    updatedFinan.dueDate[strcspn(updatedFinan.dueDate, "\n")] = 0;
                     break;
                 case 3:
                     printf("Enter 1 if the finan is paid, or 0 if it's not paid: ");
                     scanf("%d", &updatedFinan.paid);
-                    getchar(); // Consume the newline character left by scanf
-                    updatedFinan.studentName[0] = '\0'; // Clear the student name
-                    updatedFinan.dueDate[0] = '\0'; // Clear the due date
+                    getchar(); // Consumir o caractere de nova linha deixado pelo scanf
                     break;
                 default:
                     printf("Invalid option. No changes will be made.\n");
                     fclose(file);
                     fclose(tempFile);
-                    remove("database/temp.csv"); // Remove the temporary file
+                    remove("database/temp.csv"); // Remover o arquivo temporário
                     return;
             }
 
-            // Remove possible newline characters read by fgets
-            updatedFinan.studentName[strcspn(updatedFinan.studentName, "\n")] = 0;
-            updatedFinan.dueDate[strcspn(updatedFinan.dueDate, "\n")] = 0;
-
-            // Write the updated data to the temporary file
-            fprintf(tempFile, "%d,%s,%s,%d\n", updatedFinan.id, updatedFinan.studentName, updatedFinan.dueDate, updatedFinan.paid);
+            // Escrever os dados atualizados no arquivo temporário
+            fprintf(tempFile, "%d,%s,%s,%s,%d\n", updatedFinan.id, updatedFinan.registration, updatedFinan.studentName, updatedFinan.dueDate, updatedFinan.paid);
         } else {
-            // Write the non-updated finans to the temporary file
+            // Escrever os finans não atualizados no arquivo temporário
             fprintf(tempFile, "%s", line);
         }
     }
@@ -249,13 +380,13 @@ void updateFinan() {
     fclose(file);
     fclose(tempFile);
 
-    // Remove the original file
+    // Remover o arquivo original
     if (remove("database/finan.csv") != 0) {
         printf("Error deleting the file.\n");
         return;
     }
 
-    // Rename the temporary file to the original name
+    // Renomear o arquivo temporário para o nome original
     if (rename("database/temp.csv", "database/finan.csv") != 0) {
         printf("Error renaming the file.\n");
         return;
@@ -268,16 +399,16 @@ void deleteFinan() {
     int finanId;
     printf("Enter the ID of the finan you want to delete: ");
     scanf("%d", &finanId);
-    getchar(); // Consume the newline character left by scanf
+    getchar(); // Consumir o caractere de nova linha deixado pelo scanf
 
-    // Open file in read mode
+    // Abrir o arquivo em modo de leitura
     FILE *file = fopen("database/finan.csv", "r");
     if (file == NULL) {
         printf("Error opening the file.\n");
         return;
     }
 
-    // Create a temporary file to store the non-deleted finans
+    // Criar um arquivo temporário para armazenar os finans não deletados
     FILE *tempFile = fopen("database/temp.csv", "w");
     if (tempFile == NULL) {
         printf("Error creating the temporary file.\n");
@@ -297,13 +428,13 @@ void deleteFinan() {
     fclose(file);
     fclose(tempFile);
 
-    // Remove the original file
+    // Remover o arquivo original
     if (remove("database/finan.csv") != 0) {
         printf("Error deleting the file.\n");
         return;
     }
 
-    // Rename the temporary file to the original name
+    // Renomear o arquivo temporário para o nome original
     if (rename("database/temp.csv", "database/finan.csv") != 0) {
         printf("Error renaming the file.\n");
         return;
@@ -311,78 +442,6 @@ void deleteFinan() {
 
     printf("Finan deleted successfully!\n");
 }
-
-    void sortUnpaidFinanByDueDate() {
-        // Open the file in read mode
-        FILE *file = fopen("database/finan.csv", "r");
-        if (file == NULL) {
-            printf("Error opening the file.\n");
-            return;
-        }
-
-        // Read the file line by line and store the unpaid finans in an array
-        struct Finan unpaidFinans[100]; // Assuming a maximum of 100 unpaid finans
-        int unpaidFinanCount = 0;
-        char line[255];
-        while (fgets(line, sizeof(line), file)) {
-            struct Finan finan;
-            sscanf(line, "%d,%[^,],%[^,],%d", &finan.id, finan.studentName, finan.dueDate, &finan.paid);
-            if (finan.paid == 0) {
-                unpaidFinans[unpaidFinanCount] = finan;
-                unpaidFinanCount++;
-            }
-        }
-
-        fclose(file);
-
-        // Sort the unpaid finans by due date using bubble sort algorithm
-        for (int i = 0; i < unpaidFinanCount - 1; i++) {
-            for (int j = 0; j < unpaidFinanCount - i - 1; j++) {
-                if (compareDates(unpaidFinans[j].dueDate, unpaidFinans[j + 1].dueDate) < 0) {
-                    struct Finan temp = unpaidFinans[j];
-                    unpaidFinans[j] = unpaidFinans[j + 1];
-                    unpaidFinans[j + 1] = temp;
-                }
-            }
-        }
-
-        // Print the sorted unpaid finans
-        printf("Unpaid Finans (Most recent/atrasada to furthest due date):\n");
-        for (int i = 0; i < unpaidFinanCount; i++) {
-            printf("ID: %d\n", unpaidFinans[i].id);
-            printf("Student Name: %s\n", unpaidFinans[i].studentName);
-            printf("Due Date: %s\n", unpaidFinans[i].dueDate);
-            printf("Paid: %d\n", unpaidFinans[i].paid);
-            printf("------------------------\n");
-        }
-    }
-
-    int compareDates(const char *date1, const char *date2) {
-        int day1, month1, year1;
-        int day2, month2, year2;
-        sscanf(date1, "%d/%d/%d", &day1, &month1, &year1);
-        sscanf(date2, "%d/%d/%d", &day2, &month2, &year2);
-
-        if (year1 < year2) {
-            return -1;
-        } else if (year1 > year2) {
-            return 1;
-        } else {
-            if (month1 < month2) {
-                return -1;
-            } else if (month1 > month2) {
-                return 1;
-            } else {
-                if (day1 < day2) {
-                    return -1;
-                } else if (day1 > day2) {
-                    return 1;
-                } else {
-                    return 0;
-                }
-            }
-        }
-    }
 
 void crudFinan() {
     int choice;
@@ -398,7 +457,7 @@ void crudFinan() {
         printf("0. Exit\n");
         printf("Option: ");
         scanf("%d", &choice);
-        getchar(); // Consume the newline character left by scanf
+        getchar(); // Consumir o caractere de nova linha deixado pelo scanf
 
         switch (choice) {
             case 1:
@@ -430,3 +489,4 @@ void crudFinan() {
     } while (choice != 0);
     return;
 }
+

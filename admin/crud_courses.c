@@ -6,7 +6,6 @@ struct Course {
     int id;
     char name[50];
     char description[100];
-    char students[100];
 };
 
 void createCourse() {
@@ -22,7 +21,7 @@ void createCourse() {
             printf("Error creating the file.\n");
             return;
         }
-        fprintf(file, "ID,Name,Description,Students\n");
+        fprintf(file, "ID,Name,Description\n");
         newCourse.id = 1;
         fclose(file);
     } else {
@@ -47,16 +46,13 @@ void createCourse() {
     fgets(newCourse.name, sizeof(newCourse.name), stdin);
     printf("Enter the course description: ");
     fgets(newCourse.description, sizeof(newCourse.description), stdin);
-    printf("Enter the course students: ");
-    fgets(newCourse.students, sizeof(newCourse.students), stdin);
 
     // Remove possible newline characters read by fgets
     newCourse.name[strcspn(newCourse.name, "\n")] = 0;
     newCourse.description[strcspn(newCourse.description, "\n")] = 0;
-    newCourse.students[strcspn(newCourse.students, "\n")] = 0;
 
     // Write to the file
-    fprintf(file, "%d,%s,%s,%s\n", newCourse.id, newCourse.name, newCourse.description, newCourse.students);
+    fprintf(file, "%d,%s,%s\n", newCourse.id, newCourse.name, newCourse.description);
 
     // Close the file
     fclose(file);
@@ -90,11 +86,29 @@ void readCourseById() {
     }
 
     char line[255];
+    int id;
+    char *token;
+    char name[50], description[100];
+
+    // Ignora o cabeçalho do arquivo
+    fgets(line, sizeof(line), file);
+
     while (fgets(line, sizeof(line), file)) {
-        int id;
-        sscanf(line, "%d", &id);
+        // Extrai o ID da linha
+        token = strtok(line, ",");
+        id = atoi(token);
+
+        // Separa os demais dados do curso
+        token = strtok(NULL, ",");
+        strcpy(name, token);
+        token = strtok(NULL, ",");
+        strcpy(description, token);
+
+        // Compara o ID extraído com o ID procurado
         if (id == courseId) {
-            printf("%s", line);
+            printf("ID: %d\n", id);
+            printf("Name: %s\n", name);
+            printf("Description: %s\n", description);
             fclose(file);
             return;
         }
@@ -118,7 +132,7 @@ void updateCourse() {
     }
 
     // Create a temporary file to store the updated courses
-    FILE *tempFile = fopen("database/temp.csv", "w");
+    FILE *tempFile = fopen("database/tempCourse.csv", "w");
     if (tempFile == NULL) {
         printf("Error creating the temporary file.\n");
         fclose(file);
@@ -126,18 +140,22 @@ void updateCourse() {
     }
 
     char line[255];
+    int courseFound = 0;
+
     while (fgets(line, sizeof(line), file)) {
         int id;
         sscanf(line, "%d", &id);
         if (id == courseId) {
-            struct Course updatedCourse;
-            updatedCourse.id = id;
+            struct Course updateCourse;
+            updateCourse.id = id;
+
+            // Copy current data to updateCourse
+            sscanf(line, "%d,%49[^,],%99[^\n]", &updateCourse.id, updateCourse.name, updateCourse.description);
 
             // Read the new course data
             printf("What do you want to update?\n");
             printf("1. Name\n");
             printf("2. Description\n");
-            printf("3. Students\n");
             printf("Option: ");
             int option;
             scanf("%d", &option);
@@ -146,37 +164,25 @@ void updateCourse() {
             switch (option) {
                 case 1:
                     printf("Enter the new course name: ");
-                    fgets(updatedCourse.name, sizeof(updatedCourse.name), stdin);
-                    updatedCourse.description[0] = '\0'; // Clear the description
-                    updatedCourse.students[0] = '\0'; // Clear the students
+                    fgets(updateCourse.name, sizeof(updateCourse.name), stdin);
+                    updateCourse.name[strcspn(updateCourse.name, "\n")] = 0;
                     break;
                 case 2:
                     printf("Enter the new course description: ");
-                    fgets(updatedCourse.description, sizeof(updatedCourse.description), stdin);
-                    updatedCourse.name[0] = '\0'; // Clear the name
-                    updatedCourse.students[0] = '\0'; // Clear the students
-                    break;
-                case 3:
-                    printf("Enter the new course students: ");
-                    fgets(updatedCourse.students, sizeof(updatedCourse.students), stdin);
-                    updatedCourse.name[0] = '\0'; // Clear the name
-                    updatedCourse.description[0] = '\0'; // Clear the description
+                    fgets(updateCourse.description, sizeof(updateCourse.description), stdin);
+                    updateCourse.description[strcspn(updateCourse.description, "\n")] = 0;
                     break;
                 default:
                     printf("Invalid option. No changes will be made.\n");
                     fclose(file);
                     fclose(tempFile);
-                    remove("database/temp.csv"); // Remove the temporary file
+                    remove("database/tempCourse.csv"); // Remove the temporary file
                     return;
             }
 
-            // Remove possible newline characters read by fgets
-            updatedCourse.name[strcspn(updatedCourse.name, "\n")] = 0;
-            updatedCourse.description[strcspn(updatedCourse.description, "\n")] = 0;
-            updatedCourse.students[strcspn(updatedCourse.students, "\n")] = 0;
-
             // Write the updated data to the temporary file
-            fprintf(tempFile, "%d,%s,%s,%s\n", updatedCourse.id, updatedCourse.name, updatedCourse.description, updatedCourse.students);
+            fprintf(tempFile, "%d,%s,%s\n", updateCourse.id, updateCourse.name, updateCourse.description);
+            courseFound = 1;
         } else {
             // Write the non-updated courses to the temporary file
             fprintf(tempFile, "%s", line);
@@ -186,6 +192,12 @@ void updateCourse() {
     fclose(file);
     fclose(tempFile);
 
+    if (!courseFound) {
+        printf("Course not found.\n");
+        remove("database/tempCourse.csv"); // Remove the temporary file
+        return;
+    }
+
     // Remove the original file
     if (remove("database/courses.csv") != 0) {
         printf("Error deleting the file.\n");
@@ -193,7 +205,7 @@ void updateCourse() {
     }
 
     // Rename the temporary file to the original name
-    if (rename("database/temp.csv", "database/courses.csv") != 0) {
+    if (rename("database/tempCourse.csv", "database/courses.csv") != 0) {
         printf("Error renaming the file.\n");
         return;
     }
