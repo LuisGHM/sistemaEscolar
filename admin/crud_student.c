@@ -197,8 +197,48 @@ void updateStudent() {
     freeList(head);
 }
 
-// Função principal para deletar um estudante
+// Estrutura de dados da pilha
+typedef struct StackNode {
+    struct StudentAdmin student;
+    struct StackNode* next;
+} StackNode;
+
+typedef struct {
+    StackNode* top;
+} Stack;
+
+void initStack(Stack* s) {
+    s->top = NULL;
+}
+
+void push(Stack* s, struct StudentAdmin student) {
+    StackNode* newNode = (StackNode*)malloc(sizeof(StackNode));
+    newNode->student = student;
+    newNode->next = s->top;
+    s->top = newNode;
+}
+
+struct StudentAdmin pop(Stack* s) {
+    if (s->top == NULL) {
+        struct StudentAdmin emptyStudent = {0};
+        return emptyStudent;
+    }
+    StackNode* temp = s->top;
+    struct StudentAdmin student = temp->student;
+    s->top = s->top->next;
+    free(temp);
+    return student;
+}
+
+// deleteStudent udando pilha
 void deleteStudent() {
+    static Stack stack;
+    static int initialized = 0;
+    if (!initialized) {
+        initStack(&stack);
+        initialized = 1;
+    }
+
     int studentId;
     printf("Enter the ID of the Student you want to delete: ");
     scanf("%d", &studentId);
@@ -208,6 +248,20 @@ void deleteStudent() {
     StudentNode* head = loadStudentsFromFile("database/student.csv");
     if (head == NULL) {
         return;
+    }
+
+    StudentNode* temp = head;
+    struct StudentAdmin studentToPush;
+    while (temp != NULL) {
+        if (temp->id == studentId) {
+            studentToPush.id = temp->id;
+            strcpy(studentToPush.nameComplete, temp->nameComplete);
+            strcpy(studentToPush.email, temp->email);
+            strcpy(studentToPush.birthday, temp->birthday);
+            push(&stack, studentToPush);
+            break;
+        }
+        temp = temp->next;
     }
 
     // Remove o estudante da lista
@@ -222,9 +276,57 @@ void deleteStudent() {
     printf("Student deleted successfully!\n");
 }
 
-// Outras funções permanecem as mesmas
+// Estrutura de dados da fila
+typedef struct QueueNode {
+    struct StudentAdmin student;
+    struct QueueNode* next;
+} QueueNode;
 
+typedef struct {
+    QueueNode* front;
+    QueueNode* rear;
+} Queue;
+
+void initQueue(Queue* q) {
+    q->front = q->rear = NULL;
+}
+
+void enqueue(Queue* q, struct StudentAdmin student) {
+    QueueNode* newNode = (QueueNode*)malloc(sizeof(QueueNode));
+    newNode->student = student;
+    newNode->next = NULL;
+    if (q->rear == NULL) {
+        q->front = q->rear = newNode;
+        return;
+    }
+    q->rear->next = newNode;
+    q->rear = newNode;
+}
+
+struct StudentAdmin dequeue(Queue* q) {
+    if (q->front == NULL) {
+        struct StudentAdmin emptyStudent = {0};
+        return emptyStudent;
+    }
+    QueueNode* temp = q->front;
+    struct StudentAdmin student = temp->student;
+    q->front = q->front->next;
+    if (q->front == NULL) {
+        q->rear = NULL;
+    }
+    free(temp);
+    return student;
+}
+
+//  createStudent usando fila
 void createStudent() {
+    static Queue queue;
+    static int initialized = 0;
+    if (!initialized) {
+        initQueue(&queue);
+        initialized = 1;
+    }
+
     struct StudentAdmin newStudent;
     int lastId = 0;
 
@@ -270,10 +372,14 @@ void createStudent() {
     newStudent.email[strcspn(newStudent.email, "\n")] = 0;
     newStudent.birthday[strcspn(newStudent.birthday, "\n")] = 0;
 
-    // Write to the file
-    fprintf(file, "%d,%s,%s,%s\n", newStudent.id, newStudent.nameComplete, newStudent.email, newStudent.birthday);
+    // Adiciona o novo estudante na fila
+    enqueue(&queue, newStudent);
 
-    // Close the file
+    // Escreve o estudante no arquivo
+    struct StudentAdmin studentToWrite = dequeue(&queue);
+    fprintf(file, "%d,%s,%s,%s\n", studentToWrite.id, studentToWrite.nameComplete, studentToWrite.email, studentToWrite.birthday);
+
+    // Fecha o arquivo
     fclose(file);
 
     printf("Student created successfully!\n");
@@ -297,7 +403,7 @@ void readStudentById() {
     int studentId;
     printf("Enter the Student ID: ");
     scanf("%d", &studentId);
-    getchar(); // Consume the newline character left by scanf
+    getchar();
 
     FILE *file = fopen("database/student.csv", "r");
     if (file == NULL) {
@@ -355,7 +461,7 @@ void crudStudent() {
         printf("0. Exit\n");
         printf("Option: ");
         scanf("%d", &choice);
-        getchar(); // Consume the newline character left by scanf
+        getchar();
 
         switch (choice) {
             case 1:
