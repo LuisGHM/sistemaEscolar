@@ -25,13 +25,14 @@ void readFinan(const char *registration) {
         int id;
         char finanRegistration[50], studentName[100], dueDate[20];
         int paid;
+        
         sscanf(line, "%d,%49[^,],%99[^,],%19[^,],%d", &id, finanRegistration, studentName, dueDate, &paid);
 
         if (strcmp(registration, finanRegistration) == 0) {
             printf("Registration: %s\n", finanRegistration);
             printf("Student Name: %s\n", studentName);
             printf("Due Date: %s\n", dueDate);
-            printf("Paid: %d\n", paid);
+            printf("Paid: %s\n", paid ? "Yes" : "No");
             found = 1;
         }
     }
